@@ -1,0 +1,14 @@
+√ build a type cache (and save as pickle?)
+-> if not in cache, look for 
+if __iteritems__
+elif __iter__
+else
+This saves from doing an if over the entire hierarchy of all non-dict, thoughout the recursion (gets called a lot).
+
+
+Pass in path history, but only if '..' or '^/' (leading root-slash) is found in future path ('^/' only in predicate)?
+Make sure python pass-by-object is efficient enough for this (should be). Make sure immutable are not copied, etc
+
+. refers to self
+
+/ requires path history
