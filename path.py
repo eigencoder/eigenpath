@@ -53,61 +53,6 @@ type_cache = {
 }
 
 
-
-class NonStringIterable:
-    __metaclass__ = ABCMeta
-
-    @classmethod
-    def __subclasshook__(cls, C):
-        if cls is NonStringIterable:
-            if any("__iter__" in B.__dict__ for B in C.__mro__):
-                return True
-        return NotImplemented
-
-
-
-class IterItems:
-  __metaclass__ = ABCMeta
-
-  @abstractmethod
-  def __iter__(self):
-    pass
-
-  @classmethod
-  def __subclasshook__(cls, C):
-    if any("iteritems" in B.__dict__ for B in C.__mro__):
-      return True
-    return False
-
-#Warning, we do not want to iterate on dictionaries nor strings
-ITERABLE_NODE_TYPES = {list, tuple, set}
-def should_iterate(obj):
-  """
-  Consider implementing as GroupIterable 
-  """
-  if type(obj) in ITERABLE_NODE_TYPES:
-    return True
-  else: 
-    return False
-
-
-
-assert not isinstance("mystring", NonStringIterable)
-assert not isinstance(1, NonStringIterable)
-assert isinstance(["mystring",], NonStringIterable)
-assert  isinstance({"mystring":"has a dict"}, NonStringIterable)
-
-
-
-assert not isinstance("mystring", IterItems)
-assert not isinstance(1, IterItems)
-assert not isinstance(["mystring",], IterItems)
-assert isinstance({"mystring":"has a dict"}, IterItems)
-
-
-
-
-
 def path_get(data, path, sub_vars=[]):
   """
 
