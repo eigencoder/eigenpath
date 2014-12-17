@@ -18,6 +18,6 @@ path_get(data, 'level1-dict/level2')
 path_get(data, '/matrix/row') #Return all elements named 'row'
 >[[1,0,0], [0,1,0], [0,0,1]]
 
-path_get(data, '/matrix/row[0]') #Return first element named 'row'
+path_get(data, '/matrix/row[1]') #Return first element named 'row'
 > [[1,0,0]]
 ```
