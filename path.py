@@ -1,14 +1,10 @@
 
 
-from abc import ABCMeta, abstractmethod
-
-
 LEVEL_SEPARATOR = '/'
 DEEP_SEARCH = '//'
 SELF_REF = '.'
 BACK_REF = '..'
 PREDICATE_OPEN, PREDICATE_CLOSE = '[', ']'
-
 
 
 #add **kw?
@@ -17,35 +13,48 @@ def get_handler(data, current_level):
   """
   return data.get(current_level, [])
 
-def iteritems_handler(data, current_level):
-  """ Handler for any object that implements to ``__iteritems__``
-  """
-  #raise NotImplementedError
-  return data.get(current_level, [])
+#Implement only once a test is written which cannot be handled by get_handler
+#def iteritems_handler(data, current_level):
+#  """ Handler for any object that implements to ``__iteritems__``
+#  """
+#  #raise NotImplementedError
+#  return data.get(current_level, [])
 
 def iter_handler(data, current_level):  
   for entry in data:
     raise NotImplementedError
 
 def typeFindAndProc(data, current_level):
-  """ Find appropriate handler for unknown type, add to type_cache, and process.
+  """ Find appropriate handler for unknown type, add to TYPE_CACHE, and process.
   """
-  #Cannot loop over set(type_cache.values) because get_handler takes precendence over iteritems
+  #Cannot loop over set(TYPE_CACHE.values) because get_handler takes precendence over iteritems
 
   #First try .get, highest precedence
   try:
     matched = get_handler(data, current_level)
-    #If this was successful, store handler into type_cache
-    type_cache[type(data)] = get_handler
+    #If this was successful, store handler into TYPE_CACHEi
+    TYPE_CACHE[type(data)] = get_handler
     return matched
   except:
     print "Debug: get_handler failed on data type %s. Moving on to next test" % type(data)
 
-
-
   raise NotImplementedError
 
-type_cache = { 
+
+def requiresPathHistory(path):
+  """
+  Implement to improve efficiency. 
+  Will not keep track of full path/history if not necessary.
+
+  For example, if '..' is found in path, 
+    or '/' is found at beginning of a predicate path, 
+    then full path history (every node visited by parent recursions) must be passed to subsequent recursions
+  """
+  #Not implemented
+  return True
+
+#This must appear after handlers are defined unless it becomes part of a class
+TYPE_CACHE = { 
   dict : get_handler,
   list : iter_handler,
   tuple : iter_handler,
@@ -77,7 +86,7 @@ def path_get(data, path, sub_vars=[]):
       raise NotImplementedError
   """
 
-  proc = type_cache.get(type(data), typeFindAndProc)
+  proc = TYPE_CACHE.get(type(data), typeFindAndProc)
   matched = proc(data, current_level)
 
   #Filter marched data based on predicate

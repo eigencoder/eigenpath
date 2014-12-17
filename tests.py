@@ -21,6 +21,7 @@ base_struct = {"level1": 1,
               }, 
               "2015": [{'monday':'first monday'},{'monday':'second monday'}, {'tuesday': 'first tuesday'}, {'monday': ['third monday', 'paired'], 'tuesday': ['second tuesday', 'paired']},],
               '3x3 matrix': [[1,0,0],[0,1,0],[0,0,1]],
+              'matrix desc': [{'row':[1,0,0], 'desc': 'First row in list'},{'row':[0,1,0]},{'row':[0,0,1]}],
               'object-dict-root': d_root,
               'object-dict-inherited': d_inherited,
               }
