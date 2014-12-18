@@ -1,3 +1,13 @@
+import re
+import logging
+
+
+LOG_FILENAME = 'epath.log'
+logging.basicConfig(filename=LOG_FILENAME,
+                    level=logging.INFO,
+                    #level=logging.DEBUG,
+                    )
+logging.getLogger().addHandler(logging.StreamHandler())
 
 
 LEVEL_SEPARATOR = '/'
@@ -5,6 +15,13 @@ DEEP_SEARCH = '//'
 SELF_REF = '.'
 BACK_REF = '..'
 PREDICATE_OPEN, PREDICATE_CLOSE = '[', ']'
+
+
+"""
+1) Match //  -> full tree-traversal until None
+2) Match /  .   []
+
+"""
 
 
 #add **kw?
@@ -32,11 +49,15 @@ def typeFindAndProc(data, current_level):
   #First try .get, highest precedence
   try:
     matched = get_handler(data, current_level)
-    #If this was successful, store handler into TYPE_CACHEi
+    #If this was successful, store handler into TYPE_CACHE
     TYPE_CACHE[type(data)] = get_handler
     return matched
   except:
-    print "Debug: get_handler failed on data type %s. Moving on to next test" % type(data)
+    logging.info("failed to match type '%s' with get_handler. \
+Continue handler search for \n  data: %s\n  current_level:%s" % (type(data), data, current_level))
+
+
+  logging.warning("New unhandled type found: %s" % type(data))
 
   raise NotImplementedError
 
@@ -61,8 +82,28 @@ TYPE_CACHE = {
   set : iter_handler,
 }
 
+def matchPredicate(matched, predicate):
 
-def path_get(data, path, sub_vars=[]):
+  #If predicate is an integer return only that element in matching if it responds to it
+  if predicate.isdigit():
+    predicate = int(predicate)
+    #if isinstance(matched, str):
+    try:
+      return matched[predicate]
+    except:
+      logging.warning("Attempting to access item %s of non-indexed structure %s" % (predicate, matched))
+      return []
+      """
+      if predicate == 1:
+        pass #Is this right for xpath?
+      else:
+        matched = []
+      """
+
+  else:
+    raise NotImplementedError
+
+def pget(data, path, sub_vars=[]):
   """
 
   """
@@ -70,33 +111,35 @@ def path_get(data, path, sub_vars=[]):
   if not data: 
     return []
   matched = []
+  predicate = None
+  #Get information about current state
+  current_level, _, path_remainder = path.partition(LEVEL_SEPARATOR)
+  if PREDICATE_OPEN in current_level:
+    current_level, _, predicate = current_level.partition(PREDICATE_OPEN) #Use regex instead? Must come AFTER path. Currently still has ']'
+    predicate, _, path_remainder = predicate.partition(PREDICATE_CLOSE)
 
-  current_level, _, path_remainder = path.partition('LEVEL_SEPARATOR')
-  current_level, _, predicate = current_level.partition('[') #Use regex instead, must come AFTER path. Currently still has ']'
-  #Replace $(\w+) with vars[_1], and so on
+  logging.debug("current_level:%s _:%s remainder:%s predicate:%s" %(current_level, _, path_remainder, predicate) )
 
-  """
-  #If .get exists, use it
-  if isinstance(data, IterItems):
-    matched = data.get(current_level, [])
 
-  #If no .get but iterable, go through each entry and check if (deeper?) value == current_level
-  elif isinstance(data, NonStringIterable):
-    for entry in data:
-      raise NotImplementedError
-  """
+  #Process current state
 
-  proc = TYPE_CACHE.get(type(data), typeFindAndProc)
-  matched = proc(data, current_level)
+  #If '.' or nothing before '/' such as leading slash
+  if current_level == SELF_REF or not current_level:
+    #Move on to next part, nothing to do
+    matched = data
 
-  #Filter marched data based on predicate
+  else:
+    proc = TYPE_CACHE.get(type(data), typeFindAndProc)
+    matched = proc(data, current_level)
+
+  #Filter matched data based on predicate
   if predicate:
-    raise NotImplementedError
+    matched = matchPredicate(matched, predicate)
 
 
   #Recursively search path
   if path_remainder:
-    return path_get(matched, path_remainder, sub_vars)
+    return pget(matched, path_remainder, sub_vars)
   else:
     return matched
 

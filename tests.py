@@ -1,5 +1,5 @@
 import cProfile
-from path import path_get
+from path import pget
 
 
 
@@ -37,6 +37,7 @@ tests_and_results = {
   'level2/level2-1/':'level2-1-1',
   'level2/level2-2/':'level2-2-1',
   'level3[1]': [], #Dictionaries are not ordered, cannot return first element?
+  'level3/level3-2[1]': 'level3-2-1', #First element returned if only one element
   'level3/level3-3[2]': 'level3-3-2',
   'level1/../level2/level2-1':'level2-1-1',
   #type 'object-dict-inherited': 'myDict',
@@ -55,7 +56,7 @@ failed = {}
 def runAllTests():
   for test_path, exp_result in tests_and_results.items():
     try:
-      returned_result = path_get(base_struct, test_path)
+      returned_result = pget(base_struct, test_path)
     except:
       returned_result = 'ERROR'
 
@@ -69,7 +70,8 @@ def runAllTests():
 
     print ""
 
-cProfile.run('runAllTests()')
+#cProfile.run('runAllTests()')
+runAllTests()
 
 print "Passed: "
 pprint.pprint(passed)
@@ -77,4 +79,6 @@ pprint.pprint(passed)
 print "\nFailed: " 
 pprint.pprint(failed)
 
-
+#Profiling:
+#https://github.com/joerick/pyinstrument
+#python -m pyinstrument tests.py
